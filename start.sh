@@ -59,6 +59,11 @@ fi
 
 export PATH="$NODE_DIR/bin:$PATH"
 
+# Ensure a package.json exists so npm installs locally (not globally)
+if [ ! -f "$ENGINE_DIR/package.json" ]; then
+    echo '{"name":"openclaude-portable","version":"1.0.0","private":true}' > "$ENGINE_DIR/package.json"
+fi
+
 if [ ! -d "$ENGINE_DIR/node_modules/@gitlawb/openclaude" ]; then
     echo -e "${YELLOW}[~] Installing OpenClaude Engine...${RESET}"
     cd "$ENGINE_DIR"
