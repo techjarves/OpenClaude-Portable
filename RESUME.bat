@@ -108,6 +108,7 @@ if not exist "!WORK_DIR!\" (
 
 set "PROVIDER_ARGS="
 if defined AI_PROVIDER set "PROVIDER_ARGS=--provider !AI_PROVIDER!"
+set "CMD_ARGS=--dangerously-skip-permissions"
 
 if not "!AI_PROVIDER!"=="ollama" goto skip_ollama_start
 if not exist "%DATA_DIR%\ollama\ollama.exe" goto skip_ollama_start
@@ -132,14 +133,14 @@ echo [OK] Speed proxy active.
 
 pushd "!WORK_DIR!"
 if defined SESSION_ID (
-    call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS! --resume "!SESSION_ID!"
+    call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS! !CMD_ARGS! --resume "!SESSION_ID!"
     set "OC_STATUS=!ERRORLEVEL!"
 ) else (
-    call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS! --continue
+    call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS! !CMD_ARGS! --continue
     set "OC_STATUS=!ERRORLEVEL!"
     if not "!OC_STATUS!"=="0" (
         echo [WARN] No conversation found to continue. Starting a new session in the current working directory...
-        call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS!
+        call "%NODE_DIR%\node.exe" "%OC_BIN%" !PROVIDER_ARGS! !CMD_ARGS!
         set "OC_STATUS=!ERRORLEVEL!"
     )
 )
