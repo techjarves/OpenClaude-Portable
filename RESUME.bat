@@ -10,6 +10,7 @@ set "ENV_FILE=%DATA_DIR%\ai_settings.env"
 set "NODE_DIR=%ENGINE_DIR%node-win-x64"
 set "GIT_DIR=%ENGINE_DIR%git-win-x64"
 set "GIT_BASH=%GIT_DIR%\bin\bash.exe"
+set "GIT_EXE=%GIT_DIR%\bin\git.exe"
 set "OC_BIN=%ENGINE_DIR%node_modules\@gitlawb\openclaude\bin\openclaude"
 
 set "CLAUDE_CONFIG_DIR=%DATA_DIR%\openclaude"
@@ -21,6 +22,21 @@ set "CLAUDE_CODE_GIT_BASH_PATH=%GIT_BASH%"
 
 if not exist "%NODE_DIR%\node.exe" (
     echo [ERROR] Node.js was not found: %NODE_DIR%\node.exe
+    echo Please run START.bat first.
+    pause
+    exit /b 1
+)
+
+
+if not exist "%GIT_BASH%" (
+    echo [ERROR] Git Bash was not found: %GIT_BASH%
+    echo Please run START.bat first.
+    pause
+    exit /b 1
+)
+
+if not exist "%GIT_EXE%" (
+    echo [ERROR] Git executable was not found: %GIT_EXE%
     echo Please run START.bat first.
     pause
     exit /b 1
