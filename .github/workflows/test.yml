@@ -1,0 +1,32 @@
+name: Portable AI checks
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run check
+      - run: npm test
+      - name: Install official platform runtime
+        run: node tools/launcher.mjs install
+      - name: Verify runtime identity
+        run: node tools/launcher.mjs status
+      - name: Real SDK and executable against a local scripted provider
+        run: npm run smoke
+      - name: Check POSIX launchers
+        if: runner.os != 'Windows'
+        run: bash -n start.sh resume.sh tools/open_dashboard.sh tools/change_provider.sh
+      - name: Check PowerShell bootstrap syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/tools/bootstrap.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors.Count) { throw ($errors | Out-String) }

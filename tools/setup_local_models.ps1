@@ -11,7 +11,7 @@ $ModelCatalog = @(
     @{ Num=1; Category="Gemma 4 Family (Optimized GGUFs)"; Name="Gemma 4 E2B (Q4_K_M)"; Tag="https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf"; Size="3.1"; Input="Text"; Label="STANDARD"; Badge="BEST BALANCE" },
     @{ Num=2; Category="Gemma 4 Family (Optimized GGUFs)"; Name="Gemma 4 E2B (Q6_K)"; Tag="https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q6_K.gguf"; Size="4.5"; Input="Text"; Label="STANDARD"; Badge="STRONG CPU/GPU" },
     @{ Num=3; Category="Gemma 4 Family (Optimized GGUFs)"; Name="Gemma 4 E4B (Q4_K_M)"; Tag="https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf"; Size="5.0"; Input="Text"; Label="STANDARD"; Badge="MOST USERS" },
-    
+
     # Category 2: Qwen 3.5 & Ministral 3
     @{ Num=4; Category="Qwen 3.5 & Ministral 3 (Daily Drivers)"; Name="Qwen 3.5 (9B)"; Tag="qwen3.5:9b"; Size="6.6"; Input="Text, Image"; Label="STANDARD"; Badge="RECOMMENDED" },
     @{ Num=5; Category="Qwen 3.5 & Ministral 3 (Daily Drivers)"; Name="Ministral 3 (8B)"; Tag="ministral-3:8b"; Size="6.0"; Input="Text, Image"; Label="STANDARD"; Badge="DAILY" }
@@ -43,22 +43,22 @@ foreach ($m in $ModelCatalog) {
         $currentCategory = $m.Category
         Write-Host "`n  --- $currentCategory ---" -ForegroundColor Cyan
     }
-    
+
     if ($m.Label -eq "UNCENSORED") { $labelColor = "Red"; $labelStr = " [UNCENSORED]" }
     elseif ($m.Label -in @("UTILITY", "VISION", "POWERFUL")) { $labelColor = "DarkYellow"; $labelStr = " [$($m.Label)]" }
     elseif ($m.Label -eq "CLOUD") { $labelColor = "Magenta"; $labelStr = " [CLOUD-API]" }
     else { $labelColor = "DarkCyan"; $labelStr = " [STANDARD]" }
-    
+
     $badgeStr = if ($m.Badge) { " - $($m.Badge)" } else { "" }
-    
+
     $padNum = $m.Num.ToString().PadLeft(2)
     Write-Host "  [$padNum]" -ForegroundColor Yellow -NoNewline
     Write-Host " $($m.Name.PadRight(24))" -ForegroundColor White -NoNewline
     Write-Host ("[" + $m.Input + "]").PadRight(16) -ForegroundColor DarkCyan -NoNewline
-    
+
     $sizeStr = if ($m.Size -eq "-") { " (-)".PadRight(12) } else { " (~$($m.Size) GB)".PadRight(12) }
     Write-Host $sizeStr -ForegroundColor DarkGray -NoNewline
-    
+
     Write-Host $labelStr -ForegroundColor $labelColor -NoNewline
     Write-Host $badgeStr -ForegroundColor Magenta
 }
@@ -71,25 +71,25 @@ $DlCount = 0
 if (Test-Path $ManifestDir) {
     $PresetSkipRegex = 'gemma-4-e2b-it-q4_k_m-local|gemma-4-e2b-it-q6_k-local|gemma-4-e4b-it-q4_k_m-local|qwen3.5|ministral-3'
     $ModelDirs = Get-ChildItem -Path $ManifestDir -Directory -ErrorAction SilentlyContinue
-    
+
     foreach ($dir in $ModelDirs) {
         $modelBase = $dir.Name
         $TagFiles = Get-ChildItem -Path $dir.FullName -File -ErrorAction SilentlyContinue
         foreach ($file in $TagFiles) {
             $tagName = $file.Name
             $fullTag = if ($tagName -eq "latest") { $modelBase } else { "${modelBase}:${tagName}" }
-            
+
             if ($fullTag -match $PresetSkipRegex) { continue }
-            
+
             # Read JSON size simply (using regex to avoid full parsing overhead if invalid JSON)
             $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
             if ($content -match '"size"\s*:\s*(\d+)') {
                 $sizeBytes = [long]$matches[1]
                 if ($sizeBytes -lt 100000000) { continue } # Skip < 100MB
-                
+
                 $sizeGB = [math]::Round($sizeBytes / 1GB, 1)
                 $Num = $DlStartNum + $DlCount
-                
+
                 # Append to ModelCatalog so existing selection logic works automatically
                 $ModelCatalog += @{ Num=$Num; Category="Already Downloaded"; Name=$fullTag; Tag=$fullTag; Size=$sizeGB.ToString(); Input="Text"; Label="DOWNLOADED"; Badge="" }
                 $DlCount++
@@ -102,7 +102,7 @@ if ($DlCount -gt 0) {
     Write-Host "`n  --- " -ForegroundColor Cyan -NoNewline
     Write-Host "Already Downloaded" -ForegroundColor Green -NoNewline
     Write-Host " ---" -ForegroundColor Cyan
-    
+
     $dlModels = $ModelCatalog | Where-Object { $_.Category -eq "Already Downloaded" }
     foreach ($m in $dlModels) {
         $padNum = $m.Num.ToString().PadLeft(2)
@@ -176,8 +176,8 @@ $OllamaURL = "https://github.com/ollama/ollama/releases/latest/download/ollama-w
 $OllamaDest = "$OllamaDir\ollama.zip"
 $OllamaExe = "$OllamaDir\ollama.exe"
 
-if (Test-Path $OllamaExe) { 
-    Write-Host "      Engine already installed!" -ForegroundColor Green 
+if (Test-Path $OllamaExe) {
+    Write-Host "      Engine already installed!" -ForegroundColor Green
 } else {
     Write-Host "      Downloading Ollama Engine (~100MB)..." -ForegroundColor Yellow
     curl.exe -L --ssl-no-revoke $OllamaURL -o $OllamaDest
@@ -186,9 +186,9 @@ if (Test-Path $OllamaExe) {
         Expand-Archive -Path $OllamaDest -DestinationPath $OllamaDir -Force
         Remove-Item $OllamaDest -Force -ErrorAction SilentlyContinue
         Write-Host "      Engine Installed successfully!" -ForegroundColor Green
-    } else { 
+    } else {
         Write-Host "      ERROR: Failed to download engine!" -ForegroundColor Red
-        exit 1 
+        exit 1
     }
 }
 
@@ -209,14 +209,14 @@ foreach ($m in $SelectedModels) {
         $fileName = $tagUrlNoQuery.Split('/')[-1]
         if (-not $fileName.EndsWith(".gguf")) { $fileName += ".gguf" }
         $dest = "$ModelsDir\$fileName"
-        
+
         $baseName = $fileName -ireplace '\.gguf$', ''
         $modelNameLocal = "$baseName-local".ToLower() -replace '[^a-z0-9_-]', '-'
 
         # --- Always verify real file size against server ---
         Write-Host "`n  ($idx/$($SelectedModels.Count)) Checking $($m.Name)..." -ForegroundColor Yellow
         $idx++
-        
+
         $expectedSize = 0
         $existingSize = 0
         try {
@@ -224,9 +224,9 @@ foreach ($m in $SelectedModels) {
             $expectedSize = [long]$headResponse.Headers['Content-Length']
         } catch {}
         if (Test-Path $dest) { $existingSize = (Get-Item $dest).Length }
-        
+
         $fileComplete = ($expectedSize -gt 0 -and $existingSize -ge $expectedSize)
-        
+
         # Only skip if file is FULLY downloaded AND ollama has it imported
         $showResult = & $OllamaExe show $modelNameLocal 2>&1
         if ($fileComplete -and $LASTEXITCODE -eq 0) {
@@ -237,7 +237,7 @@ foreach ($m in $SelectedModels) {
         }
 
         Write-Host "      Do not close this window! Download may take a while." -ForegroundColor Magenta
-        
+
         try {
             # --- Download or resume ---
             if ((Test-Path $dest) -and -not $fileComplete) {
@@ -249,17 +249,17 @@ foreach ($m in $SelectedModels) {
                 Write-Host "      Downloading $fileName (speed + ETA shown below)..." -ForegroundColor Cyan
                 curl.exe -L -C - $($m.Tag) -o $dest
             }
-            
+
             $modelFileContent = "FROM ./$fileName`nPARAMETER temperature 0.7`nPARAMETER top_p 0.9"
             $modelFilePath = "$ModelsDir\Modelfile-$modelNameLocal"
             Set-Content -Path $modelFilePath -Value $modelFileContent -Encoding Ascii
-            
+
             Write-Host "      Importing into Ollama as '$modelNameLocal'..." -ForegroundColor Cyan
             Push-Location $ModelsDir
             $createArgs = "create $modelNameLocal -f Modelfile-$modelNameLocal"
             $createProcess = Start-Process -FilePath $OllamaExe -ArgumentList $createArgs -Wait -NoNewWindow -PassThru
             Pop-Location
-            
+
             if ($createProcess.ExitCode -eq 0) {
                 Write-Host "      Import complete!" -ForegroundColor Green
                 $m.Tag = $modelNameLocal
@@ -285,7 +285,7 @@ foreach ($m in $SelectedModels) {
     Write-Host "`n  ($idx/$($SelectedModels.Count)) Pulling $($m.Name) [$($m.Tag)]..." -ForegroundColor Yellow
     Write-Host "      Do not close this window! Download may take a while depending on bandwidth." -ForegroundColor Magenta
     $idx++
-    
+
     try {
         $pullArgs = "pull $($m.Tag)"
         $pullProcess = Start-Process -FilePath $OllamaExe -ArgumentList $pullArgs -Wait -NoNewWindow -PassThru
@@ -311,8 +311,7 @@ Set-Content -Path "$ModelsDir\installed-models.txt" -Value ($installedList -join
 Write-Host "`n[5/5] Finalizing Configurations..." -ForegroundColor Yellow
 
 $firstModelTag = $SelectedModels[0].Tag
-$configContent = "AI_PROVIDER=ollama`nCLAUDE_CODE_USE_OPENAI=1`nOPENAI_API_KEY=ollama`nOPENAI_BASE_URL=http://localhost:11434/v1`nOPENAI_MODEL=$firstModelTag`nAI_DISPLAY_MODEL=$firstModelTag"
-Set-Content -Path $EnvFile -Value $configContent -Force -Encoding Ascii
+& (Join-Path $RootDir 'START.bat') use-ollama $firstModelTag
 Write-Host "      Default Model set to: $firstModelTag" -ForegroundColor Green
 
 Write-Host "`n==========================================================" -ForegroundColor Cyan

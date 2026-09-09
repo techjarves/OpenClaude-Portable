@@ -1,0 +1,14 @@
+{
+  "name": "portable-ai-studio",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tools/launcher.mjs dashboard",
+    "setup": "node tools/launcher.mjs install",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node tools/check.mjs",
+    "smoke": "node tests/runtime-smoke.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

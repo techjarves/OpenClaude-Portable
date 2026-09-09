@@ -22,7 +22,6 @@ if [ "$OS_NAME" = "darwin" ]; then
     PLATFORM="darwin"
     OLLAMA_EXT="tgz"
     OLLAMA_URL="https://github.com/ollama/ollama/releases/latest/download/ollama-darwin.tgz"
-    xattr -cr "$SCRIPT_DIR" 2>/dev/null || true
 elif [ "$OS_NAME" = "linux" ]; then
     PLATFORM="linux"
     OLLAMA_EXT="tar.zst"
@@ -291,7 +290,7 @@ for i in "${!SELECTED_TAGS[@]}"; do
 done
 
 echo -e "\n      ${DIM}Stopping background Ollama server...${RESET}"
-kill "$SERVER_PID" 2>/dev/null
+kill "$SERVER_PID" 2>/dev/null || true
 wait "$SERVER_PID" 2>/dev/null || true
 
 # Record Models for the Dashboard
@@ -303,14 +302,7 @@ if [ ${#SELECTED_TAGS[@]} -gt 0 ]; then
 fi
 
 DEFAULT_MODEL="${SELECTED_TAGS[0]}"
-cat > "$ENV_FILE" << EOF
-AI_PROVIDER=ollama
-CLAUDE_CODE_USE_OPENAI=1
-OPENAI_API_KEY=ollama
-OPENAI_BASE_URL=http://localhost:11434/v1
-OPENAI_MODEL=${DEFAULT_MODEL}
-AI_DISPLAY_MODEL=${DEFAULT_MODEL}
-EOF
+bash "$ROOT_DIR/start.sh" use-ollama "$DEFAULT_MODEL"
 
 echo -e "\n${YELLOW}[5/5] Finalizing Configurations...${RESET}"
 echo -e "      ${GREEN}Default Model set to: $DEFAULT_MODEL${RESET}"
